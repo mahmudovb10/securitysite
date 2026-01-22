@@ -12,6 +12,18 @@ const express = require("express");
 
 const app = express();
 
+const path = require("path");
+
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+// Helmet sozlamasini ham mana bu ko'rinishga keltiring
+app.use(
+  helmet({
+    crossOriginResourcePolicy: false,
+    contentSecurityPolicy: false, // Videolar va rasmlar bloklanmasligi uchun
+  }),
+);
+
 // Middleware
 app.use(helmet());
 app.use(
