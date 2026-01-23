@@ -151,7 +151,7 @@ const RecordItem = ({ record, currentUser, onDelete }) => {
             {record.imageFileId?.path ? (
               <div className="space-y-2">
                 <p className="text-xs font-bold text-gray-500 uppercase">
-                  Pasport nusxasi:
+                 Rasmi
                 </p>
                 <img
                   src={getMediaUrl(record.imageFileId.path)}
