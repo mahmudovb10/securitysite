@@ -14,7 +14,6 @@ import {
   FileText,
 } from "lucide-react";
 
-// Backend URL manzili (Fayllarni olish uchun)
 const BASE_URL = "http://localhost:5000";
 const API_URL = `${BASE_URL}/api`;
 
@@ -63,11 +62,15 @@ const api = {
   },
 };
 
-// ============================================
-// INDIVIDUAL RECORD ITEM (Fayllarni ko'rsatish logikasi shu yerda)
-// ============================================
 const RecordItem = ({ record, currentUser, onDelete }) => {
   const [showMedia, setShowMedia] = useState(false);
+
+  const getMediaUrl = (path) => {
+    if (!path) return "";
+    const normalizedPath = path.replace(/\\/g, "/").replace(/^\//, "");
+    const cleanPath = normalizedPath.replace(/^.*uploads\//, "uploads/");
+    return `${BASE_URL}/${cleanPath}`;
+  };
 
   return (
     <div className="bg-white rounded-lg shadow p-6 mb-4 border border-gray-100 transition-all hover:shadow-md">
@@ -78,7 +81,7 @@ const RecordItem = ({ record, currentUser, onDelete }) => {
             {record.firstName} {record.lastName}
           </h3>
           <p className="text-sm text-gray-500">
-            Kiritdi: {record.createdBy?.username}
+            Kiritdi: {record.createdBy?.username || "Noma'lum"}
             {record.createdByAdmin && (
               <span className="ml-2 text-indigo-600 font-medium">(Admin)</span>
             )}
@@ -89,7 +92,6 @@ const RecordItem = ({ record, currentUser, onDelete }) => {
         </div>
 
         <div className="flex gap-2">
-          {/* KO'RISH TUGMASI */}
           <button
             onClick={() => setShowMedia(!showMedia)}
             className={`flex items-center gap-2 px-3 py-2 rounded transition ${
@@ -109,7 +111,6 @@ const RecordItem = ({ record, currentUser, onDelete }) => {
             )}
           </button>
 
-          {/* O'CHIRISH TUGMASI (ADMIN UCHUN) */}
           {currentUser.role === "admin" && (
             <button
               onClick={() => onDelete(record._id)}
@@ -123,7 +124,7 @@ const RecordItem = ({ record, currentUser, onDelete }) => {
 
       <div className="grid grid-cols-2 gap-3 text-sm border-b pb-4 mb-4">
         <div>
-          <span className="text-gray-500">Pasport:</span>
+          <span className="text-gray-500">Pasport seriya:</span>
           <p className="font-mono font-bold text-gray-800">
             {record.passportNumber}
           </p>
@@ -144,18 +145,16 @@ const RecordItem = ({ record, currentUser, onDelete }) => {
         </div>
       </div>
 
-      {/* MEDIA TOGGLE QISMI */}
       {showMedia && (
         <div className="bg-gray-50 p-4 rounded-lg space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* RASM */}
-            {record.image || record.imagePath ? (
+            {record.imageFileId?.path ? (
               <div className="space-y-2">
                 <p className="text-xs font-bold text-gray-500 uppercase">
                   Pasport nusxasi:
                 </p>
                 <img
-                  src={getMediaUrl(record.image || record.imagePath)}
+                  src={getMediaUrl(record.imageFileId.path)}
                   alt="Passport"
                   className="w-full h-48 object-contain bg-white rounded border"
                   onError={(e) => {
@@ -164,32 +163,44 @@ const RecordItem = ({ record, currentUser, onDelete }) => {
                   }}
                 />
                 <a
-                  href={`${BASE_URL}${String(record.image || record.imagePath).startsWith("/") ? "" : "/"}${record.image || record.imagePath}`}
+                  href={getMediaUrl(record.imageFileId.path)}
                   target="_blank"
                   rel="noreferrer"
                   className="flex items-center justify-center gap-2 text-xs text-blue-600 font-bold py-2 bg-white rounded border hover:bg-blue-50 transition"
                 >
-                  <Download size={14} /> RASMNI YUKLASH
+                  <Download size={14} /> RASMNI KO'RISH
                 </a>
               </div>
             ) : (
-              <p className="text-xs text-gray-400 italic">Rasm mavjud emas</p>
+              <p className="text-xs text-gray-400 italic">Rasm yuklanmagan</p>
             )}
-            {/* VIDEO */}
-            {record.video || record.videoPath ? (
+
+            {record.videoFileId?.path ? (
               <div className="space-y-2">
                 <p className="text-xs font-bold text-gray-500 uppercase">
                   Video ma'lumot:
                 </p>
-                <video controls className="w-full h-48 bg-black rounded">
+                <video
+                  controls
+                  className="w-full h-48 bg-black rounded shadow-inner"
+                >
                   <source
-                    src={getMediaUrl(record.video || record.videoPath)}
+                    src={getMediaUrl(record.videoFileId.path)}
                     type="video/mp4"
                   />
+                  Sizning brauzeringiz videoni qo'llab-quvvatlamaydi.
                 </video>
+                <a
+                  href={getMediaUrl(record.videoFileId.path)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center justify-center gap-2 text-xs text-green-600 font-bold py-2 bg-white rounded border hover:bg-green-50 transition"
+                >
+                  <Download size={14} /> VIDEONI YUKLASH
+                </a>
               </div>
             ) : (
-              <p className="text-xs text-gray-400 italic">Video mavjud emas</p>
+              <p className="text-xs text-gray-400 italic">Video yuklanmagan</p>
             )}
           </div>
 
@@ -204,9 +215,6 @@ const RecordItem = ({ record, currentUser, onDelete }) => {
   );
 };
 
-// ============================================
-// LOGIN PAGE
-// ============================================
 const LoginPage = ({ onLogin }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -272,9 +280,6 @@ const LoginPage = ({ onLogin }) => {
   );
 };
 
-// ============================================
-// ADMIN STATISTICS
-// ============================================
 const AdminStatistics = ({ token }) => {
   const [stats, setStats] = useState(null);
   useEffect(() => {
@@ -327,9 +332,6 @@ const AdminStatistics = ({ token }) => {
   );
 };
 
-// ============================================
-// UPLOAD FORM
-// ============================================
 const UploadForm = ({ token, onSuccess }) => {
   const [formData, setFormData] = useState({
     firstName: "",
@@ -345,6 +347,19 @@ const UploadForm = ({ token, onSuccess }) => {
   const [imageFile, setImageFile] = useState(null);
   const [videoFile, setVideoFile] = useState(null);
   const [uploading, setUploading] = useState(false);
+
+  // Label larni o'zbekchaga tarjima qilish xaritasi
+  const labels = {
+    firstName: "Ismi",
+    lastName: "Familiyasi",
+    passportNumber: "Pasport seriyasi",
+    nationality: "Fuqaroligi",
+    dateOfBirth: "Tug'ilgan sanasi",
+    placeOfBirth: "Tug'ilgan joyi",
+    issueDate: "Berilgan sana",
+    expiryDate: "Amal qilish muddati",
+    comment: "Izoh",
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -367,7 +382,7 @@ const UploadForm = ({ token, onSuccess }) => {
   return (
     <div className="bg-white rounded-lg shadow p-6 mb-6 border-2 border-indigo-100">
       <h2 className="text-xl font-bold mb-6 text-indigo-800">
-        Yangi Pasport Yuklash
+        Yangi Ma'lumot Qo'shish
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
         {Object.keys(formData).map(
@@ -375,10 +390,11 @@ const UploadForm = ({ token, onSuccess }) => {
             key !== "comment" && (
               <div key={key}>
                 <label className="text-xs font-bold text-gray-500 uppercase">
-                  {key}
+                  {labels[key]}
                 </label>
                 <input
                   type={key.toLowerCase().includes("date") ? "date" : "text"}
+                  placeholder={labels[key]}
                   className="w-full p-2 border rounded focus:border-indigo-500 outline-none text-sm"
                   value={formData[key]}
                   onChange={(e) =>
@@ -391,9 +407,10 @@ const UploadForm = ({ token, onSuccess }) => {
       </div>
       <div className="mb-4">
         <label className="text-xs font-bold text-gray-500 uppercase">
-          Izoh
+          {labels.comment}
         </label>
         <textarea
+          placeholder="Qo'shimcha ma'lumot yoki izoh..."
           className="w-full p-2 border rounded text-sm h-20"
           value={formData.comment}
           onChange={(e) =>
@@ -404,7 +421,7 @@ const UploadForm = ({ token, onSuccess }) => {
       <div className="grid grid-cols-2 gap-4 mb-6">
         <div className="p-3 border-2 border-dashed rounded-lg bg-gray-50">
           <label className="text-xs font-bold block mb-2 tracking-widest text-center">
-            RASM YUKLASH
+            RASM YUKLASH (JPG/PNG)
           </label>
           <input
             type="file"
@@ -415,7 +432,7 @@ const UploadForm = ({ token, onSuccess }) => {
         </div>
         <div className="p-3 border-2 border-dashed rounded-lg bg-gray-50">
           <label className="text-xs font-bold block mb-2 tracking-widest text-center">
-            VIDEO YUKLASH
+            VIDEO YUKLASH (MP4)
           </label>
           <input
             type="file"
@@ -430,15 +447,12 @@ const UploadForm = ({ token, onSuccess }) => {
         disabled={uploading}
         className="w-full py-3 bg-indigo-600 text-white rounded font-bold hover:bg-indigo-700 transition flex justify-center gap-2"
       >
-        <Upload size={18} /> {uploading ? "Yuklanmoqda..." : "SAQLASH"}
+        <Upload size={18} /> {uploading ? "Saqlanmoqda..." : "SAQLASH"}
       </button>
     </div>
   );
 };
 
-// ============================================
-// MAIN APP COMPONENT
-// ============================================
 const App = () => {
   const [currentUser, setCurrentUser] = useState(null);
   const [token, setToken] = useState(null);
@@ -479,7 +493,12 @@ const App = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("O'chirishni xohlaysizmi?")) return;
+    if (
+      !window.confirm(
+        "Haqiqatdan ham ushbu ma'lumotni o'chirib tashlamoqchimisiz?",
+      )
+    )
+      return;
     const data = await api.deleteRecord(token, id);
     if (data.success) setRecords((prev) => prev.filter((r) => r._id !== id));
   };
@@ -499,11 +518,12 @@ const App = () => {
           <div className="text-right hidden sm:block">
             <p className="text-sm font-bold">{currentUser.username}</p>
             <p className="text-xs text-green-500 font-bold uppercase">
-              {currentUser.role}
+              {currentUser.role === "admin" ? "Adminstrator" : "Foydalanuvchi"}
             </p>
           </div>
           <button
             onClick={handleLogout}
+            title="Chiqish"
             className="p-2 text-red-500 hover:bg-red-50 rounded transition"
           >
             <LogOut size={24} />
