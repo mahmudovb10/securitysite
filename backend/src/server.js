@@ -28,7 +28,7 @@ app.use("/uploads", express.static(uploadPath));
 // 3. MIDDLEWARE
 app.use(
   cors({
-    origin: ["https://securitysite-eight.vercel.app", "http://localhost:5173"],
+    origin: "*", // Barcha manzil va qurilmalarga ruxsat beradi
     credentials: true,
   }),
 );
