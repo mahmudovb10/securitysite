@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   Users,
   Database,
@@ -14,7 +14,7 @@ import {
   FileText,
 } from "lucide-react";
 
-const BASE_URL = "http://localhost:5000";
+const BASE_URL = "https://securitysite-production-85d5.up.railway.app";
 const API_URL = `${BASE_URL}/api`;
 
 const api = {
