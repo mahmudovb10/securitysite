@@ -1,5 +1,5 @@
 import axios from "axios";
-const API_URL = "https://securitysite-production.up.railway.app/api";
+const API_URL = "https://securitysite-production-85d5.up.railway.app/api";
 
 // Create axios instance
 const api = axios.create({
